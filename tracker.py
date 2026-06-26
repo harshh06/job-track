@@ -288,25 +288,51 @@ def send_telegram(new_jobs_by_repo):
 
 
 def send_ntfy(new_jobs_by_repo):
-    topic = os.environ.get("NTFY_TOPIC")   # e.g. "yourname-job-alerts"
+    topic = os.environ.get("NTFY_TOPIC")
     if not topic:
         return
 
     total = sum(len(v) for v in new_jobs_by_repo.values())
-    # ntfy sends a push notif to your phone — keep it short
-    first_repo = next(iter(new_jobs_by_repo))
-    first_jobs = list(new_jobs_by_repo[first_repo].values())
-    preview = f"{first_jobs[0]['company']} | {first_jobs[0]['role']}" if first_jobs else ""
+    
+    # Create a rich markdown body listing the new jobs
+    lines = [f"🎯 **{total} new job listing{'s' if total != 1 else ''} found!**\n"]
+    
+    count = 0
+    for repo, jobs in new_jobs_by_repo.items():
+        lines.append(f"**{repo}** ({len(jobs)} new):")
+        for url, meta in jobs.items():
+            count += 1
+            if count <= 15:  # limit to first 15 to avoid massive notification body
+                loc = f" — {meta['location']}" if meta['location'] else ""
+                lines.append(f"• [{meta['company']}]({url}) | {meta['role']}{loc}")
+        lines.append("")
+        
+    if total > 15:
+        lines.append(f"*...and {total - 15} more jobs. Check your GitHub repository for the full list.*")
+        
+    body = "\n".join(lines)
+    
+    # Set the click URL to the GitHub repository page if running in Actions, or fallback to the first job
+    repo_slug = os.environ.get("GITHUB_REPOSITORY")
+    click_url = f"https://github.com/{repo_slug}" if repo_slug else ""
+    if not click_url and new_jobs_by_repo:
+        first_repo = next(iter(new_jobs_by_repo))
+        click_url = next(iter(new_jobs_by_repo[first_repo]))
 
     try:
+        headers = {
+            "Title": f"{total} New Job Listing{'s' if total != 1 else ''}",
+            "Priority": "high",
+            "Tags": "briefcase",
+            "X-Markdown": "yes"
+        }
+        if click_url:
+            headers["Click"] = click_url
+            
         requests.post(
             f"https://ntfy.sh/{topic}",
-            data=f"{total} new job listings. First: {preview}".encode("utf-8"),
-            headers={
-                "Title": f"{total} new listings found",
-                "Priority": "high",
-                "Tags": "briefcase"
-            },
+            data=body.encode("utf-8"),
+            headers=headers,
             timeout=10
         )
         log.info("ntfy notification sent.")

@@ -28,6 +28,42 @@ LOG_FILE    = "tracker.log"
 CLOSED_RE   = re.compile(r'🔒|no longer|closed|expired', re.IGNORECASE)
 
 # ── helpers ──────────────────────────────────────────────────────────────────
+def should_include_job(company, role):
+    """
+    Filters jobs based on role titles and company type.
+    """
+    company_lower = company.lower()
+    role_lower = role.lower()
+
+    # 1. Exclude defense contractors
+    defense_keywords = [
+        'lockheed', 'northrop', 'grumman', 'raytheon', 'rtx', 'bae systems', 
+        'boeing', 'general dynamics', 'l3harris', 'anduril', 'leidos', 
+        'caci', 'saic', 'booz allen'
+    ]
+    if any(dk in company_lower for dk in defense_keywords):
+        return False
+
+    # 2. Exclude roles with specific keywords
+    exclude_keywords = [
+        'clearance', 'security research', 'sre', 'site reliability', 
+        'pre-sales', 'pre sales', 'broadcast'
+    ]
+    if any(ek in role_lower for ek in exclude_keywords):
+        return False
+
+    # 3. Include only target roles (Software, Full Stack, Frontend, ML/AI)
+    include_patterns = [
+        r'software\s*engineer', r'software\s*developer', r'swe',
+        r'full\s*stack', r'frontend', r'front-end',
+        r'ml\s*engineer', r'machine\s*learning', r'ai\s*engineer', r'artificial\s*intelligence'
+    ]
+    if not any(re.search(pat, role_lower) for pat in include_patterns):
+        return False
+
+    return True
+
+
 def extract_urls_with_context(md):
     """
     Extracts job listings from both Markdown and HTML tables in the markdown content.
@@ -91,6 +127,8 @@ def extract_urls_with_context(md):
                     
             for url in urls:
                 if 'github.com' in url or 'shields.io' in url or 'img.shields' in url:
+                    continue
+                if not should_include_job(company, role):
                     continue
                 jobs[url] = {
                     "company": company,
@@ -165,6 +203,8 @@ def extract_urls_with_context(md):
                 urls = re.findall(r'https?://[^\s\)\]"\']+', row_line)
                 for url in urls:
                     if 'github.com' in url or 'shields.io' in url or 'img.shields' in url:
+                        continue
+                    if not should_include_job(company, role):
                         continue
                     jobs[url] = {
                         "company": company,

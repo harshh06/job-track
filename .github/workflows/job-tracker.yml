@@ -1,0 +1,40 @@
+# .github/workflows/job-tracker.yml
+name: Job Tracker
+
+on:
+  schedule:
+    - cron: '0 4 * * *'    # 9:00 AM IST
+    - cron: '0 8 * * *'    # 1:30 PM IST  (closest half-hour)
+    - cron: '0 14 * * *'   # 7:30 PM IST
+  workflow_dispatch:         # manual trigger anytime
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests
+
+      - name: Run tracker
+        env:
+          EMAIL_FROM:       ${{ secrets.EMAIL_FROM }}
+          EMAIL_TO:         ${{ secrets.EMAIL_TO }}
+          EMAIL_PASS:       ${{ secrets.EMAIL_PASS }}
+          TELEGRAM_TOKEN:   ${{ secrets.TELEGRAM_TOKEN }}    # optional
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }} # optional
+          NTFY_TOPIC:       ${{ secrets.NTFY_TOPIC }}        # optional
+        run: python tracker.py
+
+      - name: Commit state and logs
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add state.json tracker.log
+          git diff --staged --quiet || (git commit -m "chore: update job state [$(date -u +%Y-%m-%d\ %H:%M)]" && git push)

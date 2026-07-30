@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Tracker — New Grad 2027</title>
+  <meta name="description" content="Live dashboard of new grad software engineering job postings, aggregated from multiple GitHub repositories." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-card-hover: rgba(255, 255, 255, 0.06);
+      --bg-glass: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text-primary: #e8e8ed;
+      --text-secondary: #8b8b9e;
+      --text-muted: #5a5a6e;
+      --accent-1: #6c5ce7;
+      --accent-2: #a29bfe;
+      --accent-3: #00cec9;
+      --gradient-primary: linear-gradient(135deg, #6c5ce7, #a29bfe, #00cec9);
+      --gradient-subtle: linear-gradient(135deg, rgba(108,92,231,0.15), rgba(0,206,201,0.1));
+      --new-badge: #fd79a8;
+      --grad-badge: #00b894;
+      --likely-badge: #fdcb6e;
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Background Gradient Orbs ─────────────────────────────────── */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: var(--accent-1);
+      top: -200px; left: -100px;
+    }
+    body::after {
+      width: 500px; height: 500px;
+      background: var(--accent-3);
+      bottom: -150px; right: -100px;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .header {
+      padding: 48px 0 32px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    /* ── Stats Bar ────────────────────────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 24px 0 32px;
+    }
+
+    .stat-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: var(--transition);
+    }
+
+    .stat-chip .count {
+      color: var(--text-primary);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-chip.accent {
+      border-color: rgba(108, 92, 231, 0.3);
+      color: var(--accent-2);
+    }
+    .stat-chip.accent .count { color: var(--accent-2); }
+
+    .stat-chip.new-count {
+      border-color: rgba(253, 121, 168, 0.3);
+      color: var(--new-badge);
+    }
+    .stat-chip.new-count .count { color: var(--new-badge); }
+
+    .stat-chip.grad-count {
+      border-color: rgba(0, 184, 148, 0.3);
+      color: var(--grad-badge);
+    }
+    .stat-chip.grad-count .count { color: var(--grad-badge); }
+
+    /* ── Controls (Search + Filters) ──────────────────────────────── */
+    .controls {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .controls-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .search-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      width: 18px;
+      height: 18px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-box input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .search-box input:focus {
+      border-color: var(--accent-1);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+    }
+
+    .sort-select {
+      padding: 12px 16px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: var(--transition);
+      min-width: 160px;
+    }
+
+    .sort-select:focus {
+      border-color: var(--accent-1);
+    }
+
+    .sort-select option {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-right: 4px;
+    }
+
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      user-select: none;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .filter-chip.active {
+      background: var(--gradient-subtle);
+      border-color: rgba(108, 92, 231, 0.4);
+      color: var(--accent-2);
+    }
+
+    .filter-chip.grad-active {
+      background: rgba(0, 184, 148, 0.1);
+      border-color: rgba(0, 184, 148, 0.4);
+      color: var(--grad-badge);
+    }
+
+    .filter-chip.likely-active {
+      background: rgba(253, 203, 110, 0.1);
+      border-color: rgba(253, 203, 110, 0.4);
+      color: var(--likely-badge);
+    }
+
+    .filter-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    /* ── Job List ──────────────────────────────────────────────────── */
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 4px 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .section-label.grad-2027 { color: var(--grad-badge); }
+    .section-label.likely { color: var(--likely-badge); }
+    .section-label.general { color: var(--text-muted); }
+
+    .section-label .section-count {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    .section-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-bottom: 80px;
+    }
+
+    .job-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      color: inherit;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .job-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .job-card.is-grad-2027 {
+      border-color: rgba(0, 184, 148, 0.2);
+    }
+    .job-card.is-grad-2027:hover {
+      border-color: rgba(0, 184, 148, 0.4);
+    }
+
+    .job-info {
+      min-width: 0;
+    }
+
+    .job-top-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .job-company {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .job-role {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .job-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .job-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .job-meta svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .badge-new {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      background: rgba(253, 121, 168, 0.12);
+      color: var(--new-badge);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      animation: pulse-badge 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .badge-grad {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-grad.ng2027 {
+      background: rgba(0, 184, 148, 0.12);
+      color: var(--grad-badge);
+    }
+
+    .badge-grad.likely {
+      background: rgba(253, 203, 110, 0.1);
+      color: var(--likely-badge);
+    }
+
+    .badge-source {
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--accent-2);
+      white-space: nowrap;
+    }
+
+    .apply-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-glass);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: var(--transition);
+    }
+
+    .job-card:hover .apply-arrow {
+      background: var(--accent-1);
+      border-color: var(--accent-1);
+      color: #fff;
+    }
+
+    .job-card.is-grad-2027:hover .apply-arrow {
+      background: var(--grad-badge);
+      border-color: var(--grad-badge);
+    }
+
+    .apply-arrow svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ── Empty / Loading States ────────────────────────────────────── */
+    .state-message {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+    }
+
+    .state-message .icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+    }
+
+    .state-message h2 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .state-message p {
+      font-size: 0.95rem;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent-1);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 32px 20px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer a {
+      color: var(--accent-2);
+      text-decoration: none;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .header { padding: 32px 0 20px; }
+      .header h1 { font-size: 1.75rem; }
+
+      .search-row { flex-direction: column; }
+      .sort-select { min-width: 0; }
+
+      .job-card { padding: 14px 16px; }
+
+      .job-top-row { gap: 6px; }
+
+      .job-role {
+        white-space: normal;
+      }
+
+      .stats-bar { gap: 8px; }
+      .stat-chip { padding: 6px 12px; font-size: 0.8rem; }
+
+      .filter-divider { display: none; }
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* ── Results Count ────────────────────────────────────────────── */
+    .results-count {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      padding: 0 4px 8px;
+      font-weight: 500;
+    }
+
+    .results-count strong {
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Job Tracker</h1>
+      <p>New Grad 2027 — Software Engineering Positions</p>
+    </header>
+    <div id="stats-bar" class="stats-bar"></div>
+  </div>
+
+  <div class="controls">
+    <div class="controls-inner">
+      <div class="search-row">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="search-input" placeholder="Search by company, role, or location…" autocomplete="off" />
+        </div>
+        <select id="sort-select" class="sort-select" aria-label="Sort jobs">
+          <option value="grad-first">New Grad 2027 First</option>
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="company-asc">Company A–Z</option>
+          <option value="company-desc">Company Z–A</option>
+        </select>
+      </div>
+      <div id="filter-row-class" class="filter-row">
+        <span class="filter-label">Type</span>
+        <button class="filter-chip grad-active" id="filter-ng27" data-grad="new_grad_2027">🎯 New Grad 2027</button>
+        <button class="filter-chip likely-active" id="filter-likely" data-grad="likely_new_grad">Likely New Grad</button>
+        <button class="filter-chip active" id="filter-general" data-grad="general">All Roles</button>
+        <div class="filter-divider"></div>
+        <button class="filter-chip" id="filter-show-all" title="Include non-US and high-experience jobs">Show Filtered</button>
+      </div>
+      <div id="filter-row-source" class="filter-row">
+        <span class="filter-label">Source</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="results-count" class="results-count"></div>
+    <div id="job-list" class="job-list">
+      <div class="state-message">
+        <div class="loader"></div>
+        <h2>Loading jobs…</h2>
+        <p>Fetching the latest postings</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>
+      Auto-updated by
+      <a href="https://github.com/harshh06/job-track" target="_blank" rel="noopener">job-track</a>
+      · Data sourced from SimplifyJobs, vanshb03, zapplyjobs, ambicuity
+    </p>
+  </footer>
+
+  <script>
+    const DATA_URL = 'https://raw.githubusercontent.com/harshh06/job-track/main/state.json';
+
+    // ── State ──────────────────────────────────────────────────────
+    let allJobs = [];
+    let activeSourceFilters = new Set();
+    let activeGradFilters = new Set(['new_grad_2027', 'likely_new_grad', 'general']);
+    let showFiltered = false;  // Show non-US / high-experience jobs
+    let currentSearch = '';
+    let currentSort = 'grad-first';
+
+    // ── Fetch & Parse ──────────────────────────────────────────────
+    async function fetchJobs() {
+      try {
+        const res = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        allJobs = [];
+        for (const [source, jobs] of Object.entries(data)) {
+          for (const [url, meta] of Object.entries(jobs)) {
+            allJobs.push({
+              url,
+              source,
+              company: cleanCompanyName(meta.company || ''),
+              role: meta.role || '',
+              location: meta.location || '',
+              foundAt: new Date(meta.found_at),
+              usBased: meta.us_based !== undefined ? meta.us_based : true,
+              experienceMax: meta.experience_max,
+              gradClass: meta.grad_class || 'general',
+              scraped: !!meta.scraped_at,
+            });
+          }
+        }
+
+        // De-duplicate by (company + role) keeping the best classification
+        const seen = new Map();
+        for (const job of allJobs) {
+          const key = `${job.company.toLowerCase()}|${job.role.toLowerCase()}`;
+          const existing = seen.get(key);
+          if (!existing) {
+            seen.set(key, job);
+          } else {
+            // Prefer the one with better classification
+            const priority = { new_grad_2027: 3, likely_new_grad: 2, general: 1 };
+            if ((priority[job.gradClass] || 0) > (priority[existing.gradClass] || 0)) {
+              seen.set(key, job);
+            } else if (job.gradClass === existing.gradClass && job.foundAt < existing.foundAt) {
+              seen.set(key, job);
+            }
+          }
+        }
+        allJobs = Array.from(seen.values());
+
+        renderStats();
+        renderSourceFilters();
+        renderJobs();
+      } catch (err) {
+        document.getElementById('job-list').innerHTML = `
+          <div class="state-message">
+            <div class="icon">⚠️</div>
+            <h2>Failed to load jobs</h2>
+            <p>${err.message}. Make sure the repository is public and state.json exists.</p>
+          </div>
+        `;
+      }
+    }
+
+    function cleanCompanyName(name) {
+      return name.replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\s]+/u, '').trim() || name.trim();
+    }
+
+    // ── Visible Jobs (after US/experience filter) ──────────────────
+    function getVisibleJobs() {
+      if (showFiltered) return allJobs;
+      return allJobs.filter(j =>
+        j.usBased !== false && (j.experienceMax === null || j.experienceMax === undefined || j.experienceMax <= 5)
+      );
+    }
+
+    // ── Render Stats ───────────────────────────────────────────────
+    function renderStats() {
+      const visible = getVisibleJobs();
+      const now = new Date();
+      const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+      const newCount = visible.filter(j => j.foundAt >= oneDayAgo).length;
+
+      const ng27Count = visible.filter(j => j.gradClass === 'new_grad_2027').length;
+      const likelyCount = visible.filter(j => j.gradClass === 'likely_new_grad').length;
+      const filteredOut = allJobs.length - visible.length;
+
+      let html = `<div class="stat-chip accent"><span class="count">${visible.length}</span> total jobs</div>`;
+      if (ng27Count > 0) {
+        html += `<div class="stat-chip grad-count"><span class="count">${ng27Count}</span> New Grad 2027</div>`;
+      }
+      if (likelyCount > 0) {
+        html += `<div class="stat-chip" style="border-color:rgba(253,203,110,0.3);color:var(--likely-badge)"><span class="count" style="color:var(--likely-badge)">${likelyCount}</span> Likely New Grad</div>`;
+      }
+      if (newCount > 0) {
+        html += `<div class="stat-chip new-count"><span class="count">${newCount}</span> new today</div>`;
+      }
+      if (filteredOut > 0) {
+        html += `<div class="stat-chip"><span class="count">${filteredOut}</span> filtered (non-US / 5+ yr)</div>`;
+      }
+
+      document.getElementById('stats-bar').innerHTML = html;
+    }
+
+    // ── Render Source Filters ───────────────────────────────────────
+    function renderSourceFilters() {
+      const visible = getVisibleJobs();
+      const sources = [...new Set(visible.map(j => j.source))].sort();
+      const container = document.getElementById('filter-row-source');
+
+      // Keep the label
+      container.innerHTML = '<span class="filter-label">Source</span>' +
+        sources.map(s =>
+          `<button class="filter-chip" data-source="${s}">${s}</button>`
+        ).join('');
+    }
+
+    // ── Render Jobs ────────────────────────────────────────────────
+    function renderJobs() {
+      const visible = getVisibleJobs();
+      let filtered = visible;
+
+      // Filter by source
+      if (activeSourceFilters.size > 0) {
+        filtered = filtered.filter(j => activeSourceFilters.has(j.source));
+      }
+
+      // Filter by grad class
+      if (activeGradFilters.size < 3) {
+        filtered = filtered.filter(j => activeGradFilters.has(j.gradClass));
+      }
+
+      // Search
+      if (currentSearch) {
+        const q = currentSearch.toLowerCase();
+        filtered = filtered.filter(j =>
+          j.company.toLowerCase().includes(q) ||
+          j.role.toLowerCase().includes(q) ||
+          j.location.toLowerCase().includes(q)
+        );
+      }
+
+      // Sort
+      const gradPriority = { new_grad_2027: 0, likely_new_grad: 1, general: 2 };
+      filtered.sort((a, b) => {
+        switch (currentSort) {
+          case 'grad-first': {
+            const gDiff = (gradPriority[a.gradClass] ?? 2) - (gradPriority[b.gradClass] ?? 2);
+            return gDiff !== 0 ? gDiff : b.foundAt - a.foundAt;
+          }
+          case 'date-desc': return b.foundAt - a.foundAt;
+          case 'date-asc': return a.foundAt - b.foundAt;
+          case 'company-asc': return a.company.localeCompare(b.company);
+          case 'company-desc': return b.company.localeCompare(a.company);
+          default: return 0;
+        }
+      });
+
+      // Results count
+      document.getElementById('results-count').innerHTML =
+        `Showing <strong>${filtered.length}</strong> of ${visible.length} jobs`;
+
+      const container = document.getElementById('job-list');
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="state-message">
+            <div class="icon">🔍</div>
+            <h2>No matching jobs</h2>
+            <p>Try adjusting your search or filters</p>
+          </div>
+        `;
+        return;
+      }
+
+      const now = new Date();
+      const oneDayAgo = new Date(now - 24 * 60 * 60 * 1000);
+
+      // Group by grad class for section headers when sorting by grad-first
+      let html = '';
+      let lastSection = null;
+
+      for (const job of filtered) {
+        // Section headers (only in grad-first sort mode)
+        if (currentSort === 'grad-first' && job.gradClass !== lastSection) {
+          lastSection = job.gradClass;
+          const sectionCount = filtered.filter(j => j.gradClass === job.gradClass).length;
+          const sectionLabels = {
+            new_grad_2027: { text: '🎯 New Grad 2027', cls: 'grad-2027' },
+            likely_new_grad: { text: '✦ Likely New Grad', cls: 'likely' },
+            general: { text: 'All Open Roles', cls: 'general' },
+          };
+          const label = sectionLabels[job.gradClass] || { text: 'Other', cls: 'general' };
+          html += `
+            <div class="section-label ${label.cls}">
+              ${label.text}
+              <span class="section-count">${sectionCount}</span>
+              <div class="section-line"></div>
+            </div>
+          `;
+        }
+
+        const isNew = job.foundAt >= oneDayAgo;
+        const timeAgo = formatTimeAgo(job.foundAt, now);
+        const isGrad = job.gradClass === 'new_grad_2027';
+
+        html += `
+          <a class="job-card${isGrad ? ' is-grad-2027' : ''}" href="${escapeAttr(job.url)}" target="_blank" rel="noopener">
+            <div class="job-info">
+              <div class="job-top-row">
+                <span class="job-company">${escapeHtml(job.company)}</span>
+                ${isGrad ? '<span class="badge-grad ng2027">🎯 New Grad 2027</span>' : ''}
+                ${job.gradClass === 'likely_new_grad' ? '<span class="badge-grad likely">Likely New Grad</span>' : ''}
+                ${isNew ? '<span class="badge-new">✦ New</span>' : ''}
+                <span class="badge-source">${escapeHtml(job.source)}</span>
+              </div>
+              <div class="job-role">${escapeHtml(job.role)}</div>
+              <div class="job-meta">
+                ${job.location ? `
+                  <span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    ${escapeHtml(job.location)}
+                  </span>
+                ` : ''}
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  ${timeAgo}
+                </span>
+              </div>
+            </div>
+            <div class="apply-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+              </svg>
+            </div>
+          </a>
+        `;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ── Utilities ──────────────────────────────────────────────────
+    function formatTimeAgo(date, now) {
+      const seconds = Math.floor((now - date) / 1000);
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days === 1) return 'yesterday';
+      if (days < 30) return `${days}d ago`;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function escapeAttr(str) {
+      return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ── Event Listeners ────────────────────────────────────────────
+    let searchDebounce;
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        currentSearch = e.target.value.trim();
+        renderJobs();
+      }, 200);
+    });
+
+    document.getElementById('sort-select').addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      renderJobs();
+    });
+
+    // Grad class filter chips
+    document.getElementById('filter-row-class').addEventListener('click', (e) => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip) return;
+
+      // "Show Filtered" toggle
+      if (chip.id === 'filter-show-all') {
+        showFiltered = !showFiltered;
+        chip.classList.toggle('active', showFiltered);
+        renderStats();
+        renderSourceFilters();
+        renderJobs();
+        return;
+      }
+
+      const grad = chip.dataset.grad;
+      if (!grad) return;
+
+      if (activeGradFilters.has(grad)) {
+        activeGradFilters.delete(grad);
+        chip.classList.remove('active', 'grad-active', 'likely-active');
+      } else {
+        activeGradFilters.add(grad);
+        if (grad === 'new_grad_2027') chip.classList.add('grad-active');
+        else if (grad === 'likely_new_grad') chip.classList.add('likely-active');
+        else chip.classList.add('active');
+      }
+      renderJobs();
+    });
+
+    // Source filter chips
+    document.getElementById('filter-row-source').addEventListener('click', (e) => {
+      const chip = e.target.closest('.filter-chip');
+      if (!chip || !chip.dataset.source) return;
+      const source = chip.dataset.source;
+
+      if (activeSourceFilters.has(source)) {
+        activeSourceFilters.delete(source);
+        chip.classList.remove('active');
+      } else {
+        activeSourceFilters.add(source);
+        chip.classList.add('active');
+      }
+      renderJobs();
+    });
+
+    // ── Init ───────────────────────────────────────────────────────
+    fetchJobs();
+  </script>
+</body>
+</html>

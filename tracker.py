@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from bs4 import BeautifulSoup
+from classifier import classify_jobs
 
 # ── logging ──────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -333,42 +334,32 @@ def send_ntfy(new_jobs_by_repo):
         return
 
     total = sum(len(v) for v in new_jobs_by_repo.values())
-    
-    # Create a rich markdown body listing the new jobs
-    lines = [f"🎯 **{total} new job listing{'s' if total != 1 else ''} found!**\n"]
-    
-    count = 0
-    for repo, jobs in new_jobs_by_repo.items():
-        lines.append(f"**{repo}** ({len(jobs)} new):")
-        for url, meta in jobs.items():
-            count += 1
-            if count <= 15:  # limit to first 15 to avoid massive notification body
-                loc = f" — {meta['location']}" if meta['location'] else ""
-                lines.append(f"• [{meta['company']}]({url}) | {meta['role']}{loc}")
-        lines.append("")
-        
-    if total > 15:
-        lines.append(f"*...and {total - 15} more jobs. Check your GitHub repository for the full list.*")
-        
-    body = "\n".join(lines)
-    
-    # Set the click URL to the GitHub repository page if running in Actions, or fallback to the first job
-    repo_slug = os.environ.get("GITHUB_REPOSITORY")
-    click_url = f"https://github.com/{repo_slug}" if repo_slug else ""
-    if not click_url and new_jobs_by_repo:
-        first_repo = next(iter(new_jobs_by_repo))
-        click_url = next(iter(new_jobs_by_repo[first_repo]))
+
+    # Count new grad 2027 among the new jobs
+    ng27 = sum(
+        1 for jobs in new_jobs_by_repo.values()
+        for meta in jobs.values()
+        if meta.get('grad_class') == 'new_grad_2027'
+    )
+
+    # Build a concise summary that fits in a push notification
+    source_parts = [f"{len(jobs)} from {repo}" for repo, jobs in new_jobs_by_repo.items()]
+    body = f"{total} new job{'s' if total != 1 else ''}: {', '.join(source_parts)}."
+    if ng27 > 0:
+        body += f" 🎯 {ng27} are New Grad 2027!"
+    body += " Tap to view all."
+
+    # Always link to the GitHub Pages viewer page
+    viewer_url = "https://harshh06.github.io/job-track/"
 
     try:
         headers = {
-            "Title": f"{total} New Job Listing{'s' if total != 1 else ''}",
+            "Title": f"🎯 {total} New Job Listing{'s' if total != 1 else ''}",
             "Priority": "high",
             "Tags": "briefcase",
-            "X-Markdown": "yes"
+            "Click": viewer_url,
         }
-        if click_url:
-            headers["Click"] = click_url
-            
+
         requests.post(
             f"https://ntfy.sh/{topic}",
             data=body.encode("utf-8"),
@@ -406,7 +397,18 @@ def main():
         if new_urls and not is_first_run:
             new_jobs_by_repo[name] = {url: current_jobs[url] for url in new_urls}
 
-        state[name] = current_jobs   # always update to current
+        # Preserve existing classification data for URLs that are still active
+        prev_data = state.get(name, {})
+        for job_url, meta in current_jobs.items():
+            if job_url in prev_data:
+                for field in ('us_based', 'experience_max', 'grad_class', 'scraped_at'):
+                    if field in prev_data[job_url]:
+                        meta[field] = prev_data[job_url][field]
+
+        state[name] = current_jobs
+
+    # ── Classify unscraped jobs (scrapes actual job pages) ────────────
+    classify_jobs(state)
 
     if is_first_run:
         log.info("First run — baseline seeded, no notifications sent.")

@@ -606,6 +606,12 @@
           </svg>
           <input type="text" id="search-input" placeholder="Search by company, role, or location…" autocomplete="off" />
         </div>
+        <select id="time-select" class="sort-select" aria-label="Filter by time">
+          <option value="all">Any Time</option>
+          <option value="24h">Past 24 Hours</option>
+          <option value="48h">Past 48 Hours</option>
+          <option value="7d">Past Week</option>
+        </select>
         <select id="sort-select" class="sort-select" aria-label="Sort jobs">
           <option value="grad-first">New Grad 2027 First</option>
           <option value="date-desc">Newest First</option>
@@ -657,6 +663,7 @@
     let showFiltered = false;  // Show non-US / high-experience jobs
     let currentSearch = '';
     let currentSort = 'grad-first';
+    let currentTimeFilter = 'all';
 
     // ── Fetch & Parse ──────────────────────────────────────────────
     async function fetchJobs() {
@@ -773,6 +780,20 @@
     function renderJobs() {
       const visible = getVisibleJobs();
       let filtered = visible;
+
+      // Filter by time
+      if (currentTimeFilter !== 'all') {
+        const now = new Date();
+        const msPerDay = 24 * 60 * 60 * 1000;
+        let cutoff;
+        if (currentTimeFilter === '24h') cutoff = new Date(now - msPerDay);
+        else if (currentTimeFilter === '48h') cutoff = new Date(now - 2 * msPerDay);
+        else if (currentTimeFilter === '7d') cutoff = new Date(now - 7 * msPerDay);
+        
+        if (cutoff) {
+          filtered = filtered.filter(j => j.foundAt >= cutoff);
+        }
+      }
 
       // Filter by source
       if (activeSourceFilters.size > 0) {
@@ -934,6 +955,11 @@
 
     document.getElementById('sort-select').addEventListener('change', (e) => {
       currentSort = e.target.value;
+      renderJobs();
+    });
+
+    document.getElementById('time-select').addEventListener('change', (e) => {
+      currentTimeFilter = e.target.value;
       renderJobs();
     });
 

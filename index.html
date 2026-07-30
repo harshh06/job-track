@@ -99,6 +99,33 @@
       font-weight: 400;
     }
 
+    .header-links {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .header-links a {
+      color: var(--accent-2);
+      text-decoration: none;
+      transition: var(--transition);
+      background: var(--bg-glass);
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+    }
+
+    .header-links a:hover {
+      border-color: var(--accent-1);
+      background: rgba(108, 92, 231, 0.1);
+      color: #fff;
+    }
+
     /* ── Stats Bar ────────────────────────────────────────────────── */
     .stats-bar {
       display: flex;
@@ -593,6 +620,13 @@
     <header class="header">
       <h1>Job Tracker</h1>
       <p>New Grad 2027 — Software Engineering Positions</p>
+      <div class="header-links">
+        <span>Sourced from:</span>
+        <a href="https://github.com/SimplifyJobs/New-Grad-Positions" target="_blank" rel="noopener">SimplifyJobs</a>
+        <a href="https://github.com/speedyapply/2027-SWE-College-Jobs" target="_blank" rel="noopener">speedyapply</a>
+        <a href="https://github.com/zapplyjobs/New-Grad-Software-Engineering-Jobs-2027" target="_blank" rel="noopener">zapplyjobs</a>
+        <a href="https://github.com/ambicuity/New-Grad-Jobs" target="_blank" rel="noopener">ambicuity</a>
+      </div>
     </header>
     <div id="stats-bar" class="stats-bar"></div>
   </div>

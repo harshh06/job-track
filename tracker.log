@@ -1887,3 +1887,5 @@
 2026-07-29 15:49:17,354 [INFO] State saved.
 2026-07-29 15:49:17,354 [INFO] === Run complete ===
 
+2026-07-29 21:56:46,044 [ERROR] ntfy failed: 'latin-1' codec can't encode character '\U0001f3af' in position 0: ordinal not in range(256)
+2026-07-29 21:58:09,410 [INFO] ntfy notification sent.

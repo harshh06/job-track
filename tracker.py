@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 # ── config ───────────────────────────────────────────────────────────────────
 REPOS = [
     ("SimplifyJobs", "https://raw.githubusercontent.com/SimplifyJobs/New-Grad-Positions/dev/README.md"),
-    ("vanshb03",     "https://raw.githubusercontent.com/vanshb03/New-Grad-2027/main/README.md"),
+    ("speedyapply",  "https://raw.githubusercontent.com/speedyapply/2027-SWE-College-Jobs/main/NEW_GRAD_USA.md"),
     ("zapplyjobs",   "https://raw.githubusercontent.com/zapplyjobs/New-Grad-Software-Engineering-Jobs-2027/main/README.md"),
     ("ambicuity",    "https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md"),
 ]
@@ -138,7 +138,7 @@ def extract_urls_with_context(md):
                     "found_at": datetime.now(timezone.utc).isoformat()
                 }
 
-    # 2. Parse Markdown Tables (e.g. vanshb03, zapplyjobs, ambicuity)
+    # 2. Parse Markdown Tables (e.g. speedyapply, zapplyjobs, ambicuity)
     lines = md.splitlines()
     i = 0
     while i < len(lines):

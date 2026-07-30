@@ -354,7 +354,7 @@ def send_ntfy(new_jobs_by_repo):
 
     try:
         headers = {
-            "Title": f"🎯 {total} New Job Listing{'s' if total != 1 else ''}",
+            "Title": f"🎯 {total} New Job Listing{'s' if total != 1 else ''}".encode('utf-8'),
             "Priority": "high",
             "Tags": "briefcase",
             "Click": viewer_url,

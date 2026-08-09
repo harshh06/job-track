@@ -2586,3 +2586,26 @@
 2026-08-09 05:00:01,202 [INFO] State saved.
 2026-08-09 05:00:01,202 [INFO] === Run complete ===
 
+2026-08-09 08:34:33,096 [INFO] === Job tracker run started ===
+2026-08-09 08:34:33,097 [INFO] Fetching SimplifyJobs...
+2026-08-09 08:34:33,929 [INFO] SimplifyJobs: found 565 open URLs total.
+2026-08-09 08:34:33,929 [INFO] SimplifyJobs: 0 new URL(s) since last run.
+2026-08-09 08:34:33,930 [INFO] Fetching speedyapply...
+2026-08-09 08:34:34,154 [INFO] speedyapply: found 0 open URLs total.
+2026-08-09 08:34:34,154 [INFO] speedyapply: 0 new URL(s) since last run.
+2026-08-09 08:34:34,154 [INFO] Fetching zapplyjobs...
+2026-08-09 08:34:34,340 [INFO] zapplyjobs: found 112 open URLs total.
+2026-08-09 08:34:34,340 [INFO] zapplyjobs: 27 new URL(s) since last run.
+2026-08-09 08:34:34,340 [INFO] Fetching ambicuity...
+2026-08-09 08:34:34,488 [INFO] ambicuity: found 31 open URLs total.
+2026-08-09 08:34:34,488 [INFO] ambicuity: 1 new URL(s) since last run.
+2026-08-09 08:34:34,488 [INFO] Classifying 28 unscraped jobs...
+2026-08-09 08:34:52,875 [INFO] Classification complete: 28 jobs classified.
+2026-08-09 08:34:52,875 [INFO]   US-based: 631 | Non-US: 77
+2026-08-09 08:34:52,875 [INFO]   New Grad 2027: 72 | Likely New Grad: 495
+2026-08-09 08:34:52,875 [INFO]   High experience (>5yr): 16
+2026-08-09 08:34:52,875 [INFO] Email notification skipped: EMAIL_FROM, EMAIL_TO, or EMAIL_PASS not set.
+2026-08-09 08:34:53,555 [INFO] ntfy notification sent.
+2026-08-09 08:34:53,561 [INFO] State saved.
+2026-08-09 08:34:53,561 [INFO] === Run complete ===
+

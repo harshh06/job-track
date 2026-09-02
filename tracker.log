@@ -4357,3 +4357,28 @@
 2026-09-02 12:27:14,671 [INFO] State saved.
 2026-09-02 12:27:14,671 [INFO] === Run complete ===
 
+2026-09-02 17:38:55,552 [INFO] === Job tracker run started ===
+2026-09-02 17:38:55,553 [INFO] Fetching SimplifyJobs...
+2026-09-02 17:38:56,204 [INFO] SimplifyJobs: found 695 open URLs total.
+2026-09-02 17:38:56,204 [INFO] SimplifyJobs: 5 new URL(s) since last run.
+2026-09-02 17:38:56,205 [INFO] Fetching speedyapply...
+2026-09-02 17:38:56,378 [INFO] speedyapply: found 0 open URLs total.
+2026-09-02 17:38:56,378 [INFO] speedyapply: 0 new URL(s) since last run.
+2026-09-02 17:38:56,378 [INFO] Fetching zapplyjobs...
+2026-09-02 17:38:56,581 [INFO] zapplyjobs: found 101 open URLs total.
+2026-09-02 17:38:56,581 [INFO] zapplyjobs: 17 new URL(s) since last run.
+2026-09-02 17:38:56,581 [INFO] Fetching ambicuity...
+2026-09-02 17:38:56,685 [WARNING] Attempt 1 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-02 17:38:56,782 [WARNING] Attempt 2 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-02 17:38:56,842 [WARNING] Attempt 3 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-02 17:38:56,842 [ERROR] Skipping ambicuity — all fetch attempts failed.
+2026-09-02 17:38:56,843 [INFO] Classifying 22 unscraped jobs...
+2026-09-02 17:39:11,230 [INFO] Classification complete: 22 jobs classified.
+2026-09-02 17:39:11,230 [INFO]   US-based: 755 | Non-US: 80
+2026-09-02 17:39:11,230 [INFO]   New Grad 2027: 114 | Likely New Grad: 564
+2026-09-02 17:39:11,230 [INFO]   High experience (>5yr): 14
+2026-09-02 17:39:11,230 [INFO] Email notification skipped: EMAIL_FROM, EMAIL_TO, or EMAIL_PASS not set.
+2026-09-02 17:39:21,316 [ERROR] ntfy failed: HTTPSConnectionPool(host='ntfy.sh', port=443): Max retries exceeded with url: /harsh-jobs-2027 (Caused by NewConnectionError("HTTPSConnection(host='ntfy.sh', port=443): Failed to establish a new connection: [Errno 101] Network is unreachable"))
+2026-09-02 17:39:21,320 [INFO] State saved.
+2026-09-02 17:39:21,320 [INFO] === Run complete ===
+

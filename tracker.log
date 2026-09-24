@@ -5958,3 +5958,28 @@
 2026-09-23 18:17:36,201 [INFO] State saved.
 2026-09-23 18:17:36,201 [INFO] === Run complete ===
 
+2026-09-24 08:57:47,060 [INFO] === Job tracker run started ===
+2026-09-24 08:57:47,062 [INFO] Fetching SimplifyJobs...
+2026-09-24 08:57:47,704 [INFO] SimplifyJobs: found 787 open URLs total.
+2026-09-24 08:57:47,704 [INFO] SimplifyJobs: 14 new URL(s) since last run.
+2026-09-24 08:57:47,705 [INFO] Fetching speedyapply...
+2026-09-24 08:57:47,885 [INFO] speedyapply: found 0 open URLs total.
+2026-09-24 08:57:47,885 [INFO] speedyapply: 0 new URL(s) since last run.
+2026-09-24 08:57:47,885 [INFO] Fetching zapplyjobs...
+2026-09-24 08:57:48,115 [INFO] zapplyjobs: found 98 open URLs total.
+2026-09-24 08:57:48,115 [INFO] zapplyjobs: 52 new URL(s) since last run.
+2026-09-24 08:57:48,115 [INFO] Fetching ambicuity...
+2026-09-24 08:57:48,218 [WARNING] Attempt 1 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-24 08:57:48,267 [WARNING] Attempt 2 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-24 08:57:48,373 [WARNING] Attempt 3 failed for https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md: 404 Client Error: Not Found for url: https://raw.githubusercontent.com/ambicuity/New-Grad-Jobs/main/README.md
+2026-09-24 08:57:48,374 [ERROR] Skipping ambicuity — all fetch attempts failed.
+2026-09-24 08:57:48,374 [INFO] Classifying 66 unscraped jobs...
+2026-09-24 08:59:05,934 [INFO] Classification complete: 66 jobs classified.
+2026-09-24 08:59:05,934 [INFO]   US-based: 840 | Non-US: 84
+2026-09-24 08:59:05,934 [INFO]   New Grad 2027: 172 | Likely New Grad: 624
+2026-09-24 08:59:05,934 [INFO]   High experience (>5yr): 15
+2026-09-24 08:59:05,934 [INFO] Email notification skipped: EMAIL_FROM, EMAIL_TO, or EMAIL_PASS not set.
+2026-09-24 08:59:06,140 [INFO] ntfy notification sent.
+2026-09-24 08:59:06,146 [INFO] State saved.
+2026-09-24 08:59:06,146 [INFO] === Run complete ===
+
